@@ -8,3 +8,9 @@ app/var/tmp/
 
 # File generati
 app/public/bundles/
+
+# Credenziali e segreti
+app/config/pimcore/google-api-private-key.json*
+app/.env.local
+app/.env.*.local
+.env.local
