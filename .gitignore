@@ -1,0 +1,10 @@
+# Dipendenze Pimcore (pesanti, si rigenerano con composer install)
+app/vendor/
+
+# Cache e log
+app/var/cache/
+app/var/log/
+app/var/tmp/
+
+# File generati
+app/public/bundles/
