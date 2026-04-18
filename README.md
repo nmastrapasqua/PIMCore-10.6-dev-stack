@@ -100,6 +100,6 @@ docker compose up -d
 
 # Reset completo (CANCELLA TUTTI I DATI)
 docker compose down -v
-rm -rf app
+sudo rm -rf app
 ./setup.sh
 ```

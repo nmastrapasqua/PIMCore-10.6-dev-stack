@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Per vedere il log:
+ *  docker compose exec supervisord cat /var/log/greet.log
+ */
+
 namespace App\Command;
 
 use Symfony\Component\Console\Command\Command;
