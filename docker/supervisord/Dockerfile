@@ -13,7 +13,7 @@ ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
     LC_ALL=en_US.UTF-8
 
-# Dipendenze di sistema
+# Dipendenze di sistema (include supervisor e cron)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     curl \
@@ -63,16 +63,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/pimcore.ini
 
-# Remap www-data all'UID host
+# Remap www-data UID/GID all'utente host
 RUN usermod -u ${HOST_UID} www-data \
     && groupmod -g ${HOST_GID} www-data
 
-# Prepara cron: crea directory necessarie e assicura che il demone funzioni
-RUN mkdir -p /var/run /var/log \
-    && touch /var/log/cron.log \
-    && chmod 0644 /var/log/cron.log
-
-# Copia il crontab con i permessi corretti (root:root, 644)
+# Crontab con permessi corretti (root:root, 644 — requisito di cron)
 COPY --chown=root:root --chmod=644 docker/cron/pimcore-crontab /etc/cron.d/pimcore-crontab
 
 WORKDIR /var/www/html

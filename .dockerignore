@@ -1,5 +1,10 @@
 .git
 .idea
 .vscode
+.kiro
 *.md
 docker-compose.override.yml
+app/var/cache/
+app/var/log/
+app/var/tmp/
+app/vendor/

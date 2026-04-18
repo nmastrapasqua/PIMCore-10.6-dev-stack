@@ -2,13 +2,13 @@
 
 ## Stack
 
-| Servizio     | Immagine / Build       | Porta  |
-|-------------|------------------------|--------|
-| Nginx       | nginx:1.24-alpine      | 8480   |
-| PHP-FPM     | php:8.1-fpm (custom)   | 9000   |
-| MySQL       | mysql:8.0              | 33060  |
-| Redis       | redis:7-alpine         | 63790  |
-| Supervisord | (stesso image PHP)     | -      |
+| Servizio     | Immagine / Build          | Porta  | Ruolo                              |
+|-------------|---------------------------|--------|------------------------------------|
+| Nginx       | nginx:1.24-alpine         | 8480   | Reverse proxy                      |
+| PHP-FPM     | php:8.1-fpm (custom)      | -      | Applicazione Pimcore               |
+| Supervisord | php:8.1-fpm (custom)      | -      | Maintenance, messenger, cron jobs  |
+| MySQL       | mysql:8.0                 | 33060  | Database                           |
+| Redis       | redis:7-alpine            | 63790  | Cache e sessioni                   |
 
 ## Requisiti
 
@@ -25,21 +25,27 @@ chmod +x setup.sh
 ## Struttura progetto
 
 ```
-├── app/                    ← Progetto Pimcore (bind mount, editabile da VSCode)
-│   ├── src/                ← Le tue classi PHP vanno qui
-│   │   └── Command/        ← Comandi Symfony custom (es. import)
-│   ├── config/             ← Configurazione Symfony/Pimcore
-│   ├── public/             ← Document root Nginx
-│   ├── var/                ← Cache, log, tmp
+├── app/                          ← Progetto Pimcore (bind mount, editabile da VSCode)
+│   ├── src/
+│   │   └── Command/              ← Comandi Symfony custom (es. import, job schedulati)
+│   ├── config/                   ← Configurazione Symfony/Pimcore
+│   ├── public/                   ← Document root Nginx
+│   ├── var/                      ← Cache, log, tmp
 │   └── composer.json
 ├── docker/
-│   ├── nginx/default.conf
+│   ├── nginx/default.conf        ← Configurazione Nginx per Pimcore
 │   ├── php/
-│   │   ├── Dockerfile
-│   │   └── php.ini
-│   └── supervisord/pimcore.conf
+│   │   ├── Dockerfile            ← Immagine PHP-FPM
+│   │   └── php.ini               ← Tuning PHP
+│   ├── supervisord/
+│   │   ├── Dockerfile            ← Immagine worker (supervisor + cron)
+│   │   ├── supervisord.conf      ← Configurazione supervisord
+│   │   └── pimcore.conf          ← Job: maintenance, messenger, cron
+│   └── cron/
+│       └── pimcore-crontab       ← Job schedulati via cron
 ├── docker-compose.yml
-└── setup.sh
+├── setup.sh
+└── .env                          ← UID/GID host
 ```
 
 ## Sviluppo
@@ -58,6 +64,15 @@ docker compose exec php bin/console app:mio-comando
 docker compose exec php bin/console cache:clear
 ```
 
+## Job schedulati (cron)
+
+I job cron sono definiti in `docker/cron/pimcore-crontab`.
+Per aggiungere un nuovo job, aggiungi una riga e rebuilda il container:
+
+```bash
+docker compose up -d --build supervisord
+```
+
 ## Accesso
 
 - **Frontend:** http://localhost:8480
@@ -69,6 +84,9 @@ docker compose exec php bin/console cache:clear
 ```bash
 # Log dei container
 docker compose logs -f
+
+# Stato dei processi supervisord
+docker compose exec supervisord supervisorctl status
 
 # Accesso al container PHP
 docker compose exec php bash

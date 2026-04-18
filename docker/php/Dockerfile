@@ -1,6 +1,5 @@
 FROM php:8.1-fpm-bullseye
 
-# UID/GID dell'utente host (passati dal docker-compose)
 ARG HOST_UID=1000
 ARG HOST_GID=1000
 
@@ -20,8 +19,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     wget \
     git \
-    supervisor \
-    cron \
     libzip-dev \
     libicu-dev \
     libfreetype6-dev \
@@ -32,6 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libonig-dev \
     libcurl4-openssl-dev \
     libssl-dev \
+    # Strumenti aggiuntivi raccomandati da Pimcore
     libreoffice \
     pngquant \
     optipng \
@@ -50,21 +48,9 @@ RUN docker-php-ext-configure gd \
         --with-jpeg \
         --with-webp \
     && docker-php-ext-install -j$(nproc) \
-        gd \
-        intl \
-        pdo_mysql \
-        mysqli \
-        zip \
-        opcache \
-        mbstring \
-        xml \
-        dom \
-        simplexml \
-        fileinfo \
-        exif \
-        curl \
-        bcmath \
-        soap
+        gd intl pdo_mysql mysqli zip opcache \
+        mbstring xml dom simplexml fileinfo \
+        exif curl bcmath soap
 
 # Redis extension
 RUN pecl install redis && docker-php-ext-enable redis
@@ -82,13 +68,9 @@ COPY docker/php/php.ini /usr/local/etc/php/conf.d/pimcore.ini
 # Composer
 COPY --from=composer:2.5 /usr/bin/composer /usr/bin/composer
 
-# Riconfigura www-data con lo stesso UID/GID dell'utente host
+# Remap www-data UID/GID all'utente host (per bind mount senza conflitti)
 RUN usermod -u ${HOST_UID} www-data \
     && groupmod -g ${HOST_GID} www-data
-
-# Configura PHP-FPM per girare con l'UID/GID dell'host
-RUN sed -i "s/user = www-data/user = www-data/" /usr/local/etc/php-fpm.d/www.conf \
-    && sed -i "s/group = www-data/group = www-data/" /usr/local/etc/php-fpm.d/www.conf
 
 WORKDIR /var/www/html
 
