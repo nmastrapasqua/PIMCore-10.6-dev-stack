@@ -45,13 +45,14 @@ services:
   supervisord:
     build:
       context: .
-      dockerfile: docker/php/Dockerfile
+      dockerfile: docker/supervisord/Dockerfile
       args:
         HOST_UID: ${HOST_UID:-1000}
         HOST_GID: ${HOST_GID:-1000}
     command: ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
     volumes:
       - ./app:/var/www/html:cached
+      - ./docker/supervisord/supervisord.conf:/etc/supervisor/supervisord.conf:ro
       - ./docker/supervisord/pimcore.conf:/etc/supervisor/conf.d/pimcore.conf:ro
     depends_on:
       - php

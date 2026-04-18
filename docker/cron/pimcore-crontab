@@ -1,0 +1,4 @@
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Job schedulato: saluto ogni minuto (per test)
+* * * * * root /usr/local/bin/php /var/www/html/bin/console app:greet >> /var/log/greet.log 2>&1
